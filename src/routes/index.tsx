@@ -26,13 +26,13 @@ export const Route = createFileRoute("/")({
 });
 
 const BUBBLE_COLORS = [
-  "oklch(0.72 0.15 250)",
-  "oklch(0.68 0.16 300)",
-  "oklch(0.74 0.14 350)",
-  "oklch(0.78 0.12 200)",
-  "oklch(0.76 0.13 155)",
-  "oklch(0.78 0.14 60)",
-  "oklch(0.84 0.13 95)",
+  "oklch(0.65 0.2 250)",
+  "oklch(0.62 0.22 300)",
+  "oklch(0.68 0.2 350)",
+  "oklch(0.72 0.16 200)",
+  "oklch(0.7 0.17 155)",
+  "oklch(0.72 0.18 60)",
+  "oklch(0.8 0.17 95)",
 ];
 
 function rand(seed: number) {
@@ -49,7 +49,7 @@ const BUBBLES = Array.from({ length: 46 }, (_, i) => {
     size,
     color: BUBBLE_COLORS[Math.floor(rand(i + 23) * BUBBLE_COLORS.length)]!,
     blur: (1 - depth) * 14 + rand(i + 31) * 4,
-    opacity: 0.22 + depth * 0.4,
+    opacity: 0.4 + depth * 0.45,
     duration: 34 - depth * 16 + rand(i + 41) * 10,
     delay: -rand(i + 53) * 40,
     drift: (rand(i + 61) - 0.5) * 14,
@@ -80,7 +80,7 @@ function Index() {
             }}
           />
         ))}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--background)_82%,transparent)_0%,color-mix(in_oklab,var(--background)_45%,transparent)_58%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--background)_62%,transparent)_0%,color-mix(in_oklab,var(--background)_18%,transparent)_55%,transparent_100%)]" />
       </div>
 
       <div className="max-w-4xl text-center">
