@@ -156,69 +156,6 @@
   }
 }
 
-@keyframes orb-1 {
-  0% {
-    transform: translate3d(-50%, -50%, 0) translate3d(-6%, -4%, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(-50%, -50%, 0) translate3d(14%, 12%, 0) scale(1.25);
-  }
-  100% {
-    transform: translate3d(-50%, -50%, 0) translate3d(-6%, -4%, 0) scale(1);
-  }
-}
-
-@keyframes orb-2 {
-  0% {
-    transform: translate3d(-50%, -50%, 0) translate3d(8%, 6%, 0) scale(1.15);
-  }
-  50% {
-    transform: translate3d(-50%, -50%, 0) translate3d(-16%, -10%, 0) scale(0.95);
-  }
-  100% {
-    transform: translate3d(-50%, -50%, 0) translate3d(8%, 6%, 0) scale(1.15);
-  }
-}
-
-@keyframes orb-3 {
-  0% {
-    transform: translate3d(-50%, -50%, 0) translate3d(-10%, 6%, 0) scale(1.05);
-  }
-  50% {
-    transform: translate3d(-50%, -50%, 0) translate3d(12%, -14%, 0) scale(1.3);
-  }
-  100% {
-    transform: translate3d(-50%, -50%, 0) translate3d(-10%, 6%, 0) scale(1.05);
-  }
-}
-
-@keyframes orb-4 {
-  0% {
-    transform: translate3d(-50%, -50%, 0) translate3d(10%, -8%, 0) scale(0.9);
-  }
-  50% {
-    transform: translate3d(-50%, -50%, 0) translate3d(-14%, 10%, 0) scale(1.2);
-  }
-  100% {
-    transform: translate3d(-50%, -50%, 0) translate3d(10%, -8%, 0) scale(0.9);
-  }
-}
-
-@keyframes aurora-sweep {
-  0% {
-    transform: translate3d(-8%, 0, 0) rotate(0deg) scale(1.1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translate3d(8%, 4%, 0) rotate(8deg) scale(1.3);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translate3d(-8%, 0, 0) rotate(0deg) scale(1.1);
-    opacity: 0.5;
-  }
-}
-
 @keyframes noise-drift {
   0% {
     transform: translate3d(0, 0, 0);
@@ -258,58 +195,35 @@
   animation-delay: 1.4s;
 }
 
-@utility orb {
-  will-change: transform;
+@keyframes bubble-fall {
+  0% {
+    transform: translate3d(0, -30vh, 0) scale(var(--b-scale, 1));
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--b-opacity, 0.5);
+  }
+  50% {
+    transform: translate3d(var(--b-drift, 4vw), 45vh, 0)
+      scale(calc(var(--b-scale, 1) * 1.06));
+  }
+  92% {
+    opacity: var(--b-opacity, 0.5);
+  }
+  100% {
+    transform: translate3d(0, 125vh, 0) scale(var(--b-scale, 1));
+    opacity: 0;
+  }
 }
 
-@utility orb-1 {
-  background: radial-gradient(
-    circle at 35% 35%,
-    color-mix(in oklab, var(--chart-3) 42%, transparent) 0%,
-    transparent 65%
-  );
-  animation: orb-1 30s ease-in-out infinite;
-}
-
-@utility orb-2 {
-  background: radial-gradient(
-    circle at 55% 45%,
-    color-mix(in oklab, var(--chart-4) 34%, transparent) 0%,
-    transparent 63%
-  );
-  animation: orb-2 38s ease-in-out infinite;
-}
-
-@utility orb-3 {
-  background: radial-gradient(
-    circle at 45% 55%,
-    color-mix(in oklab, var(--chart-2) 32%, transparent) 0%,
-    transparent 62%
-  );
-  animation: orb-3 46s ease-in-out infinite;
-}
-
-@utility orb-4 {
-  background: radial-gradient(
-    circle at 50% 50%,
-    color-mix(in oklab, var(--chart-5) 28%, transparent) 0%,
-    transparent 60%
-  );
-  animation: orb-4 26s ease-in-out infinite;
-}
-
-@utility aurora-sweep {
-  background: conic-gradient(
-    from 210deg at 50% 50%,
-    transparent 0deg,
-    color-mix(in oklab, var(--chart-1) 14%, transparent) 70deg,
-    transparent 150deg,
-    color-mix(in oklab, var(--chart-3) 16%, transparent) 250deg,
-    transparent 360deg
-  );
-  filter: blur(90px);
-  animation: aurora-sweep 40s ease-in-out infinite;
-  will-change: transform;
+@utility bubble {
+  position: absolute;
+  top: 0;
+  border-radius: 9999px;
+  will-change: transform, opacity;
+  animation: bubble-fall var(--b-duration, 20s) linear infinite;
+  animation-delay: var(--b-delay, 0s);
+  opacity: 0;
 }
 
 @utility noise-drift {
