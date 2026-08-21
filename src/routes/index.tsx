@@ -59,8 +59,8 @@ const BUBBLES = Array.from({ length: 46 }, (_, i) => {
 
 function Index() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-20">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-20">
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         {BUBBLES.map((b) => (
           <span
             key={b.id}
@@ -83,7 +83,7 @@ function Index() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--background)_62%,transparent)_0%,color-mix(in_oklab,var(--background)_18%,transparent)_55%,transparent_100%)]" />
       </div>
 
-      <div className="max-w-4xl text-center">
+      <div className="relative z-10 max-w-4xl text-center">
         <h1 className="reveal reveal-delay-1 text-3xl font-light uppercase leading-tight tracking-[0.18em] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
           Upcoming Prop Firm Comparison Directory
         </h1>
