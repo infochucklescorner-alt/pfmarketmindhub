@@ -40,7 +40,7 @@ function rand(seed: number) {
   return x - Math.floor(x);
 }
 
-const BUBBLES = Array.from({ length: 46 }, (_, i) => {
+const BUBBLES = Array.from({ length: 40 }, (_, i) => {
   const depth = rand(i + 1);
   const size = 14 + depth * 120;
   return {
@@ -49,7 +49,7 @@ const BUBBLES = Array.from({ length: 46 }, (_, i) => {
     size,
     color: BUBBLE_COLORS[Math.floor(rand(i + 23) * BUBBLE_COLORS.length)]!,
     blur: (1 - depth) * 14 + rand(i + 31) * 4,
-    opacity: 0.4 + depth * 0.45,
+    opacity: 0.26 + depth * 0.3,
     duration: 34 - depth * 16 + rand(i + 41) * 10,
     delay: -rand(i + 53) * 40,
     drift: (rand(i + 61) - 0.5) * 14,
