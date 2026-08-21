@@ -25,17 +25,62 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const BUBBLE_COLORS = [
+  "oklch(0.72 0.15 250)",
+  "oklch(0.68 0.16 300)",
+  "oklch(0.74 0.14 350)",
+  "oklch(0.78 0.12 200)",
+  "oklch(0.76 0.13 155)",
+  "oklch(0.78 0.14 60)",
+  "oklch(0.84 0.13 95)",
+];
+
+function rand(seed: number) {
+  const x = Math.sin(seed * 127.1) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+const BUBBLES = Array.from({ length: 46 }, (_, i) => {
+  const depth = rand(i + 1);
+  const size = 14 + depth * 120;
+  return {
+    id: i,
+    left: rand(i + 11) * 100,
+    size,
+    color: BUBBLE_COLORS[Math.floor(rand(i + 23) * BUBBLE_COLORS.length)]!,
+    blur: (1 - depth) * 14 + rand(i + 31) * 4,
+    opacity: 0.22 + depth * 0.4,
+    duration: 34 - depth * 16 + rand(i + 41) * 10,
+    delay: -rand(i + 53) * 40,
+    drift: (rand(i + 61) - 0.5) * 14,
+    scale: 0.85 + depth * 0.3,
+  };
+});
+
 function Index() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-20">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="orb orb-1 absolute left-[18%] top-[22%] h-[62vmax] w-[62vmax] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[80px]" />
-        <div className="orb orb-2 absolute left-[78%] top-[30%] h-[54vmax] w-[54vmax] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[90px]" />
-        <div className="orb orb-3 absolute left-[46%] top-[82%] h-[70vmax] w-[70vmax] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]" />
-        <div className="orb orb-4 absolute left-[62%] top-[58%] h-[40vmax] w-[40vmax] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[70px]" />
-        <div className="aurora-sweep absolute -inset-[30%]" />
-        <div className="noise-drift absolute -inset-[10%] text-foreground opacity-[0.045] [background-image:radial-gradient(currentColor_0.5px,transparent_0.5px)] [background-size:3px_3px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--background)_78%,transparent)_0%,color-mix(in_oklab,var(--background)_35%,transparent)_55%,transparent_100%)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        {BUBBLES.map((b) => (
+          <span
+            key={b.id}
+            className="bubble"
+            style={{
+              left: `${b.left}%`,
+              width: `${b.size}px`,
+              height: `${b.size}px`,
+              background: `radial-gradient(circle at 32% 28%, color-mix(in oklab, ${b.color} 70%, white) 0%, ${b.color} 45%, color-mix(in oklab, ${b.color} 55%, transparent) 100%)`,
+              filter: `blur(${b.blur}px)`,
+              boxShadow: `0 0 ${b.size / 2}px color-mix(in oklab, ${b.color} 45%, transparent)`,
+              ["--b-duration" as string]: `${b.duration}s`,
+              ["--b-delay" as string]: `${b.delay}s`,
+              ["--b-opacity" as string]: `${b.opacity}`,
+              ["--b-drift" as string]: `${b.drift}vw`,
+              ["--b-scale" as string]: `${b.scale}`,
+            }}
+          />
+        ))}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--background)_82%,transparent)_0%,color-mix(in_oklab,var(--background)_45%,transparent)_58%,transparent_100%)]" />
       </div>
 
       <div className="max-w-4xl text-center">
