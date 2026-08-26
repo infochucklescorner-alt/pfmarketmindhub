@@ -13,8 +13,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedBotsRouteImport } from './routes/_authenticated/bots'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
+import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
+import { Route as AuthenticatedPositionsRouteImport } from './routes/_authenticated/positions'
+import { Route as AuthenticatedRiskRouteImport } from './routes/_authenticated/risk'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,6 +41,16 @@ const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBotsRoute = AuthenticatedBotsRouteImport.update({
   id: '/bots',
   path: '/bots',
@@ -45,20 +61,53 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerformanceRoute =
+  AuthenticatedPerformanceRouteImport.update({
+    id: '/performance',
+    path: '/performance',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPositionsRoute = AuthenticatedPositionsRouteImport.update({
+  id: '/positions',
+  path: '/positions',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRiskRoute = AuthenticatedRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/accounts': typeof AuthenticatedAccountsRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/billing': typeof AuthenticatedBillingRoute
   '/bots': typeof AuthenticatedBotsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/history': typeof AuthenticatedHistoryRoute
+  '/performance': typeof AuthenticatedPerformanceRoute
+  '/positions': typeof AuthenticatedPositionsRoute
+  '/risk': typeof AuthenticatedRiskRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/accounts': typeof AuthenticatedAccountsRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/billing': typeof AuthenticatedBillingRoute
   '/bots': typeof AuthenticatedBotsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/history': typeof AuthenticatedHistoryRoute
+  '/performance': typeof AuthenticatedPerformanceRoute
+  '/positions': typeof AuthenticatedPositionsRoute
+  '/risk': typeof AuthenticatedRiskRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +115,56 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/bots': typeof AuthenticatedBotsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/history': typeof AuthenticatedHistoryRoute
+  '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
+  '/_authenticated/positions': typeof AuthenticatedPositionsRoute
+  '/_authenticated/risk': typeof AuthenticatedRiskRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/accounts' | '/bots' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/accounts'
+    | '/admin'
+    | '/billing'
+    | '/bots'
+    | '/dashboard'
+    | '/history'
+    | '/performance'
+    | '/positions'
+    | '/risk'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/accounts' | '/bots' | '/dashboard'
+  to:
+    | '/'
+    | '/auth'
+    | '/accounts'
+    | '/admin'
+    | '/billing'
+    | '/bots'
+    | '/dashboard'
+    | '/history'
+    | '/performance'
+    | '/positions'
+    | '/risk'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/accounts'
+    | '/_authenticated/admin'
+    | '/_authenticated/billing'
     | '/_authenticated/bots'
     | '/_authenticated/dashboard'
+    | '/_authenticated/history'
+    | '/_authenticated/performance'
+    | '/_authenticated/positions'
+    | '/_authenticated/risk'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -120,6 +203,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/billing': {
+      id: '/_authenticated/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AuthenticatedBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bots': {
       id: '/_authenticated/bots'
       path: '/bots'
@@ -134,19 +231,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/history': {
+      id: '/_authenticated/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/performance': {
+      id: '/_authenticated/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof AuthenticatedPerformanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/positions': {
+      id: '/_authenticated/positions'
+      path: '/positions'
+      fullPath: '/positions'
+      preLoaderRoute: typeof AuthenticatedPositionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/risk': {
+      id: '/_authenticated/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof AuthenticatedRiskRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedBotsRoute: typeof AuthenticatedBotsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
+  AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
+  AuthenticatedPositionsRoute: typeof AuthenticatedPositionsRoute
+  AuthenticatedRiskRoute: typeof AuthenticatedRiskRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountsRoute: AuthenticatedAccountsRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedBotsRoute: AuthenticatedBotsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
+  AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
+  AuthenticatedPositionsRoute: AuthenticatedPositionsRoute,
+  AuthenticatedRiskRoute: AuthenticatedRiskRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
