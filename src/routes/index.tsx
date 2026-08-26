@@ -1,22 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prop Firm Comparison Directory — Coming Soon" },
+      { title: "PF MARKET MIND — Automated Prop Firm Trading" },
       {
         name: "description",
         content:
-          "A refined directory for comparing prop firms is on the way. Stay tuned for the launch.",
+          "PF MARKET MIND is a cloud-based automated trading platform for prop firm accounts. Connect MT5, activate trading bots, and control risk — no laptop required.",
       },
       {
         property: "og:title",
-        content: "Prop Firm Comparison Directory — Coming Soon",
+        content: "PF MARKET MIND — Automated Prop Firm Trading",
       },
       {
         property: "og:description",
         content:
-          "A refined directory for comparing prop firms is on the way. Stay tuned for the launch.",
+          "Cloud-based automated trading for prop firm accounts. Connect MT5, activate bots, control risk.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -30,7 +33,7 @@ const BUBBLE_COLORS = [
   "oklch(0.62 0.22 300)",
   "oklch(0.68 0.2 350)",
   "oklch(0.72 0.16 200)",
-  "oklch(0.7 0.17 155)",
+  "oklch(0.78 0.17 162)",
   "oklch(0.72 0.18 60)",
   "oklch(0.8 0.17 95)",
 ];
@@ -40,7 +43,7 @@ function rand(seed: number) {
   return x - Math.floor(x);
 }
 
-const BUBBLES = Array.from({ length: 40 }, (_, i) => {
+const BUBBLES = Array.from({ length: 36 }, (_, i) => {
   const depth = rand(i + 1);
   const size = 14 + depth * 120;
   return {
@@ -49,7 +52,7 @@ const BUBBLES = Array.from({ length: 40 }, (_, i) => {
     size,
     color: BUBBLE_COLORS[Math.floor(rand(i + 23) * BUBBLE_COLORS.length)]!,
     blur: (1 - depth) * 14 + rand(i + 31) * 4,
-    opacity: 0.26 + depth * 0.3,
+    opacity: 0.14 + depth * 0.2,
     duration: 34 - depth * 16 + rand(i + 41) * 10,
     delay: -rand(i + 53) * 40,
     drift: (rand(i + 61) - 0.5) * 14,
@@ -58,6 +61,8 @@ const BUBBLES = Array.from({ length: 40 }, (_, i) => {
 });
 
 function Index() {
+  const { session } = useAuth();
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-20">
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -83,19 +88,45 @@ function Index() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--background)_62%,transparent)_0%,color-mix(in_oklab,var(--background)_18%,transparent)_55%,transparent_100%)]" />
       </div>
 
-      <div className="relative z-10 max-w-4xl text-center">
-        <h1 className="reveal reveal-delay-1 text-3xl font-light uppercase leading-tight tracking-[0.18em] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
-          Upcoming Prop Firm Comparison Directory
+      <div className="relative z-10 max-w-3xl text-center">
+        <p className="reveal text-xs font-medium uppercase tracking-[0.35em] text-primary">
+          Cloud Automated Trading
+        </p>
+        <h1 className="reveal reveal-delay-1 mt-6 font-display text-4xl font-semibold uppercase leading-tight tracking-[0.12em] text-foreground sm:text-5xl lg:text-6xl">
+          PF Market Mind
         </h1>
-        <p className="reveal reveal-delay-2 mt-10 text-sm font-medium uppercase tracking-[0.3em] text-muted-foreground sm:text-base">
-          Stay Tuned
+        <p className="reveal reveal-delay-2 mx-auto mt-8 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+          Connect your MT5 account, activate a trading bot, and let our cloud
+          infrastructure execute on your prop firm account — no laptop, no VPS, no
+          babysitting.
         </p>
-        <p className="reveal reveal-delay-3 mt-6 inline-flex items-center text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground sm:text-sm">
-          Big Ideas Loading
-          <span className="loading-dot loading-dot-1 ml-0.5">.</span>
-          <span className="loading-dot loading-dot-2">.</span>
-          <span className="loading-dot loading-dot-3">.</span>
-        </p>
+        <div className="reveal reveal-delay-3 mt-12 flex flex-wrap items-center justify-center gap-4">
+          {session ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Open dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Get started
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/auth"
+                className="inline-flex items-center rounded-lg border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                Sign in
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </main>
   );
