@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   { to: "/performance", label: "Performance", icon: LineChart },
   { to: "/billing", label: "Billing", icon: CreditCard },
   { to: "/admin", label: "Admin", icon: Gauge },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
