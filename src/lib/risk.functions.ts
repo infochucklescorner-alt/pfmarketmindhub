@@ -46,3 +46,15 @@ export const saveRiskSettings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const setTradingEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ enabled: z.boolean() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("risk_settings")
+      .update({ trading_enabled: data.enabled, updated_at: new Date().toISOString() })
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true, enabled: data.enabled };
+  });
