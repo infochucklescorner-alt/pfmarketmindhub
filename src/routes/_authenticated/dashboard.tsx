@@ -1,8 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Activity, Bot, CreditCard, Server, Wallet } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Activity,
+  AlertTriangle,
+  Bot,
+  CalendarClock,
+  CreditCard,
+  Gauge,
+  Plus,
+  Server,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { getDashboardOverview } from "@/lib/dashboard.functions";
+import { setTradingEnabled } from "@/lib/risk.functions";
+import { MIN_SPREAD_THRESHOLD_USD, getNewsRestriction } from "@/lib/protection";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -10,14 +24,31 @@ import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — PF MARKET MIND" },
-      { name: "description", content: "Overview of your automated trading accounts, bots, and performance." },
+      {
+        name: "description",
+        content:
+          "Monitor connected trading accounts, bot status, protection rules, and trade activity.",
+      },
       { property: "og:title", content: "Dashboard — PF MARKET MIND" },
-      { property: "og:description", content: "Overview of your automated trading accounts, bots, and performance." },
+      {
+        property: "og:description",
+        content:
+          "Monitor connected trading accounts, bot status, protection rules, and trade activity.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -34,14 +65,30 @@ function formatMoney(value: number, currency = "USD") {
 }
 
 function DashboardPage() {
-  const { data, isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  const news = getNewsRestriction();
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["dashboard-overview"],
     queryFn: () => getDashboardOverview(),
   });
 
-  if (isLoading || !data) {
+  const toggleTrading = useMutation({
+    mutationFn: (enabled: boolean) => setTradingEnabled({ data: { enabled } }),
+    onSuccess: (res) => {
+      toast.success(
+        res.enabled
+          ? "Bots armed. Execution stays paused until the MT5 service is live."
+          : "Bots disabled.",
+      );
+      queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  if (isLoading) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" aria-busy="true" aria-live="polite">
         <Skeleton className="h-10 w-64" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -53,7 +100,29 @@ function DashboardPage() {
     );
   }
 
+  if (isError || !data) {
+    return (
+      <div>
+        <PageHeader title="Dashboard" description="Your automated trading at a glance." />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Couldn't load your dashboard"
+          description={
+            error instanceof Error ? error.message : "Something went wrong. Try again."
+          }
+          action={
+            <Button variant="outline" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   const activeBots = data.activations.filter((a) => a.status === "active").length;
+  const connectedAccounts = data.accounts.filter((a) => a.status === "connected").length;
+  const tradingAllowed = !news.restricted && data.tradingEnabled;
 
   return (
     <div>
@@ -62,50 +131,75 @@ function DashboardPage() {
         description="Your automated trading at a glance."
         actions={
           <Button asChild>
-            <Link to="/accounts">Connect MT5 account</Link>
+            <Link to="/accounts">
+              <Plus className="h-4 w-4" />
+              Connect trading account
+            </Link>
           </Button>
         }
       />
 
-      <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-muted-foreground">
+      <div
+        role="status"
+        className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-muted-foreground"
+      >
         <span className="font-medium text-warning">Execution service offline.</span>{" "}
-        The MT5 execution layer is not connected yet. Accounts remain in{" "}
-        <span className="font-medium text-foreground">pending</span> and no trades are
-        being placed — this dashboard is the foundation the execution service will plug
-        into.
+        Trade execution is disabled at this stage. Accounts stay in{" "}
+        <span className="font-medium text-foreground">pending</span> and no orders are
+        placed — this dashboard is the foundation the MT5 execution service plugs into.
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Server} label="MT5 Accounts" value={data.accounts.length} />
+        <StatCard
+          icon={Server}
+          label="Connected Accounts"
+          value={connectedAccounts}
+          hint={`${data.accounts.length} total account${data.accounts.length === 1 ? "" : "s"}`}
+        />
         <StatCard
           icon={Bot}
-          label="Active Bots"
-          value={activeBots}
-          hint={`${data.activations.length} total activation${data.activations.length === 1 ? "" : "s"}`}
+          label="Bot Status"
+          value={data.tradingEnabled ? "Enabled" : "Disabled"}
+          hint={`${activeBots} active activation${activeBots === 1 ? "" : "s"}`}
         />
-        <StatCard icon={Activity} label="Open Positions" value={data.openPositions} />
         <StatCard
-          icon={Wallet}
-          label="Net Profit"
-          value={formatMoney(data.realizedProfit + data.floatingProfit)}
-          hint={`${data.totalTrades} closed trades`}
+          icon={Activity}
+          label="Today's Trades"
+          value={data.todaysTrades}
+          hint={`${formatMoney(data.todaysProfit)} today`}
+        />
+        <StatCard
+          icon={ShieldCheck}
+          label="Trading Permission"
+          value={tradingAllowed ? "Allowed" : "Blocked"}
+          hint={
+            news.restricted
+              ? "News-day restriction active"
+              : data.tradingEnabled
+                ? "Guardrails satisfied"
+                : "Bots disabled by you"
+          }
         />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        {/* Trading accounts */}
         <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="font-display text-base">Connected accounts</CardTitle>
+          <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardTitle className="font-display text-base">Trading accounts</CardTitle>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/accounts">Manage</Link>
+            </Button>
           </CardHeader>
           <CardContent>
             {data.accounts.length === 0 ? (
               <EmptyState
                 icon={Server}
-                title="No MT5 accounts yet"
-                description="Connect your first MT5 account to start automating. Credentials are encrypted server-side."
+                title="No trading accounts yet"
+                description="Connect your first trading account to start automating. Credentials are encrypted server-side and never exposed to the browser."
                 action={
                   <Button asChild variant="outline">
-                    <Link to="/accounts">Connect account</Link>
+                    <Link to="/accounts">Connect trading account</Link>
                   </Button>
                 }
               />
@@ -122,6 +216,9 @@ function DashboardPage() {
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
                         {account.broker_server}
+                        {account.balance != null
+                          ? ` · ${formatMoney(Number(account.balance), account.currency ?? "USD")}`
+                          : ""}
                       </p>
                     </div>
                     <StatusBadge status={account.status} />
@@ -132,24 +229,50 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Bot control */}
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="font-display text-base">Bot activations</CardTitle>
+            <CardTitle className="font-display text-base">Bot control</CardTitle>
           </CardHeader>
           <CardContent>
-            {data.activations.length === 0 ? (
-              <EmptyState
-                icon={Bot}
-                title="No bots activated"
-                description="Browse the bot catalog and activate a strategy on one of your connected accounts."
-                action={
-                  <Button asChild variant="outline">
-                    <Link to="/bots">Browse bots</Link>
-                  </Button>
-                }
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-4 py-3">
+              <div className="min-w-0">
+                <label
+                  htmlFor="bot-master-toggle"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Master bot switch
+                </label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {data.riskSettings.length === 0
+                    ? "Activate a bot first to enable this switch."
+                    : "Arms every activated bot. Orders remain paused while the execution service is offline."}
+                </p>
+              </div>
+              <Switch
+                id="bot-master-toggle"
+                aria-label="Enable bots"
+                checked={data.tradingEnabled}
+                disabled={data.riskSettings.length === 0 || toggleTrading.isPending}
+                onCheckedChange={(checked) => toggleTrading.mutate(checked)}
               />
+            </div>
+
+            {data.activations.length === 0 ? (
+              <div className="mt-4">
+                <EmptyState
+                  icon={Bot}
+                  title="No bots activated"
+                  description="Browse the bot catalog and activate a strategy on one of your connected accounts."
+                  action={
+                    <Button asChild variant="outline">
+                      <Link to="/bots">Browse bots</Link>
+                    </Button>
+                  }
+                />
+              </div>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul className="mt-4 flex flex-col gap-3">
                 {data.activations.map((activation) => (
                   <li
                     key={activation.id}
@@ -170,7 +293,144 @@ function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* News protection */}
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-display text-base">
+              <CalendarClock className="h-4 w-4 text-muted-foreground" />
+              News protection
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {news.restricted ? (
+              <div className="rounded-lg border border-loss/30 bg-loss/5 px-4 py-3">
+                <p className="text-sm font-medium text-loss">
+                  Trading blocked today — high-impact news
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {news.event} scheduled for {news.date}. Bots stay flat for the full
+                  session to avoid news volatility.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-profit/30 bg-profit/5 px-4 py-3">
+                <p className="text-sm font-medium text-profit">
+                  Trading allowed today
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  No high-impact news restriction detected for {news.date}.
+                </p>
+              </div>
+            )}
+            <p className="mt-3 text-xs text-muted-foreground">
+              The live economic calendar is supplied by the execution service once
+              connected.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Spread protection */}
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-display text-base">
+              <Gauge className="h-4 w-4 text-muted-foreground" />
+              Spread protection
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-4 py-3">
+              <p className="text-sm text-muted-foreground">Maximum allowed spread</p>
+              <p className="font-display text-lg font-semibold text-foreground">
+                {formatMoney(MIN_SPREAD_THRESHOLD_USD)}
+              </p>
+            </div>
+            {data.accounts.length === 0 ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Connect a trading account to monitor live spread per account.
+              </p>
+            ) : (
+              <ul className="mt-3 flex flex-col gap-2">
+                {data.accounts.map((account) => (
+                  <li
+                    key={account.id}
+                    className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-4 py-2.5"
+                  >
+                    <span className="truncate text-sm text-foreground">
+                      {account.label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Spread unavailable — service offline
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Recent activity */}
+      <Card className="mt-6 border-border/60">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle className="font-display text-base">Recent trade activity</CardTitle>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/history">Full history</Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {data.recentTrades.length === 0 ? (
+            <EmptyState
+              icon={Activity}
+              title="No trades yet"
+              description="Once the execution service is live and your bots are armed, closed trades appear here."
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead>Side</TableHead>
+                    <TableHead className="text-right">Volume</TableHead>
+                    <TableHead className="text-right">Open</TableHead>
+                    <TableHead className="text-right">Close</TableHead>
+                    <TableHead className="text-right">Profit</TableHead>
+                    <TableHead className="text-right">Closed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.recentTrades.map((trade) => (
+                    <TableRow key={trade.id}>
+                      <TableCell className="font-medium">{trade.symbol}</TableCell>
+                      <TableCell className="capitalize">{trade.side}</TableCell>
+                      <TableCell className="text-right">{trade.volume}</TableCell>
+                      <TableCell className="text-right">{trade.open_price}</TableCell>
+                      <TableCell className="text-right">
+                        {trade.close_price ?? "—"}
+                      </TableCell>
+                      <TableCell
+                        className={
+                          Number(trade.profit) >= 0
+                            ? "text-right text-profit"
+                            : "text-right text-loss"
+                        }
+                      >
+                        {formatMoney(Number(trade.profit ?? 0))}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {trade.closed_at
+                          ? new Date(trade.closed_at).toLocaleDateString()
+                          : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="mt-6 border-border/60">
         <CardHeader>
@@ -211,6 +471,12 @@ function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      <p className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
+        <Wallet className="h-3.5 w-3.5" />
+        Net profit to date: {formatMoney(data.realizedProfit + data.floatingProfit)} across{" "}
+        {data.totalTrades} closed trades and {data.openPositions} open positions.
+      </p>
     </div>
   );
 }
