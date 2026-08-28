@@ -98,6 +98,74 @@ export type Database = {
         }
         Relationships: []
       }
+      bridge_status: {
+        Row: {
+          ask: number | null
+          bid: number | null
+          bridge_id: string
+          created_at: string
+          execution_enabled: boolean
+          id: string
+          last_error: string | null
+          last_heartbeat_at: string | null
+          last_quote_at: string | null
+          mt5_account_id: string | null
+          mt5_connected: boolean
+          spread: number | null
+          status: string
+          symbol: string | null
+          terminal_build: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ask?: number | null
+          bid?: number | null
+          bridge_id: string
+          created_at?: string
+          execution_enabled?: boolean
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          last_quote_at?: string | null
+          mt5_account_id?: string | null
+          mt5_connected?: boolean
+          spread?: number | null
+          status?: string
+          symbol?: string | null
+          terminal_build?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ask?: number | null
+          bid?: number | null
+          bridge_id?: string
+          created_at?: string
+          execution_enabled?: boolean
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          last_quote_at?: string | null
+          mt5_account_id?: string | null
+          mt5_connected?: boolean
+          spread?: number | null
+          status?: string
+          symbol?: string | null
+          terminal_build?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bridge_status_mt5_account_id_fkey"
+            columns: ["mt5_account_id"]
+            isOneToOne: false
+            referencedRelation: "mt5_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mt5_account_secrets: {
         Row: {
           account_id: string
