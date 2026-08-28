@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   Server,
+  Settings,
   ShieldCheck,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
