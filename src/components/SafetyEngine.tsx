@@ -62,7 +62,7 @@ export function evaluateSafety(opts: {
   return { online, spread, allowed: reasons.length === 0, reasons };
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-border/50 py-2.5 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
