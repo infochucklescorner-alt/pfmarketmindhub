@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   Bot,
@@ -20,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -63,8 +65,13 @@ function Brand() {
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15">
         <LineChart className="h-4 w-4 text-primary" />
       </span>
-      <span className="font-display text-sm font-semibold tracking-[0.18em] text-foreground">
-        PF MARKET MIND
+      <span className="flex flex-col leading-tight">
+        <span className="font-display text-sm font-semibold tracking-[0.18em] text-foreground">
+          PF NEXUS
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          PF Market Mind
+        </span>
       </span>
     </Link>
   );
@@ -80,9 +87,13 @@ export function AppShell({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/" });
+    navigate({ to: "/auth", replace: true });
   };
 
   return (
@@ -110,39 +121,64 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile top bar */}
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur md:hidden">
-          <Brand />
-          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 bg-sidebar p-0">
-              <div className="flex h-16 items-center border-b border-sidebar-border px-4">
-                <Brand />
-              </div>
-              <div className="p-3">
-                <NavLinks onNavigate={() => setMenuOpen(false)} />
-              </div>
-              <div className="absolute inset-x-0 bottom-0 border-t border-sidebar-border p-3">
-                <p className="truncate px-3 pb-2 text-xs text-muted-foreground">
-                  {user.email}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start gap-3 text-muted-foreground"
-                  onClick={signOut}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
+        {/* Top bar */}
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/90 px-4 backdrop-blur">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="md:hidden">
+              <Brand />
+            </div>
+            <span className="hidden items-center gap-2 rounded-full border border-warning/30 bg-warning/10 px-3 py-1 text-xs font-medium text-warning md:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+              Monitoring / test mode — execution disabled
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <span className="hidden max-w-[16rem] truncate px-2 text-xs text-muted-foreground lg:inline">
+              {user.email}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sign out"
+              className="hidden md:inline-flex"
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open menu" className="md:hidden">
+                  <Menu className="h-5 w-5" />
                 </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 bg-sidebar p-0">
+                <div className="flex h-16 items-center border-b border-sidebar-border px-4">
+                  <Brand />
+                </div>
+                <div className="p-3">
+                  <NavLinks onNavigate={() => setMenuOpen(false)} />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 border-t border-sidebar-border p-3">
+                  <p className="truncate px-3 pb-2 text-xs text-muted-foreground">
+                    {user.email}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start gap-3 text-muted-foreground"
+                    onClick={signOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
+
 
         <main className={cn("flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8")}>
           <div className="mx-auto w-full max-w-6xl">{children}</div>
