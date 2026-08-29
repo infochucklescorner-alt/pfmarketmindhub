@@ -65,8 +65,13 @@ function Brand() {
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15">
         <LineChart className="h-4 w-4 text-primary" />
       </span>
-      <span className="font-display text-sm font-semibold tracking-[0.18em] text-foreground">
-        PF MARKET MIND
+      <span className="flex flex-col leading-tight">
+        <span className="font-display text-sm font-semibold tracking-[0.18em] text-foreground">
+          PF NEXUS
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          PF Market Mind
+        </span>
       </span>
     </Link>
   );

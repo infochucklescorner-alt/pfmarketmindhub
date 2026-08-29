@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LineChart, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { lovable } from "@/integrations/lovable/index";
@@ -45,23 +45,47 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Already signed in? Go straight to the console.
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/dashboard", replace: true });
+    });
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      const msg = /invalid login credentials/i.test(error.message)
+        ? "Email or password is incorrect. Passwords are never stored by us — reset if you're unsure."
+        : /email not confirmed/i.test(error.message)
+          ? "Confirm your email address, then sign in again."
+          : error.message;
+      toast.error(msg);
       return;
     }
-    navigate({ to: "/dashboard" });
+    if (!data.session) {
+      toast.error("Could not start a session. Please try again.");
+      return;
+    }
+    setPassword("");
+    navigate({ to: "/dashboard", replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email,
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
       password,
       options: {
         data: { full_name: fullName },
@@ -73,7 +97,13 @@ function AuthPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Account created. Check your email to confirm, then sign in.");
+    if (data.session) {
+      setPassword("");
+      toast.success("Account created. Welcome to PF NEXUS.");
+      navigate({ to: "/dashboard", replace: true });
+      return;
+    }
+    toast.success("Account created. Confirm your email, then sign in with the same password.");
   };
 
   const handleGoogle = async () => {
