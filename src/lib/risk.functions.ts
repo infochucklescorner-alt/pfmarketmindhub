@@ -58,3 +58,28 @@ export const setTradingEnabled = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, enabled: data.enabled };
   });
+
+/**
+ * Emergency stop: disables trading on every risk profile and pauses every bot
+ * activation for the signed-in user. Monitoring-only build — no orders exist to
+ * close yet, but the kill switch state is persisted for the execution service.
+ */
+export const emergencyStop = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const now = new Date().toISOString();
+    const [risk, activations] = await Promise.all([
+      context.supabase
+        .from("risk_settings")
+        .update({ trading_enabled: false, updated_at: now })
+        .eq("user_id", context.userId),
+      context.supabase
+        .from("bot_activations")
+        .update({ status: "paused", updated_at: now })
+        .eq("user_id", context.userId)
+        .neq("status", "paused"),
+    ]);
+    const err = risk.error ?? activations.error;
+    if (err) throw new Error(err.message);
+    return { ok: true, stoppedAt: now };
+  });
