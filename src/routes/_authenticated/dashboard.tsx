@@ -15,6 +15,8 @@ import {
 import { toast } from "sonner";
 
 import { getDashboardOverview } from "@/lib/dashboard.functions";
+import { getBridgeStatus } from "@/lib/bridge.functions";
+import { SafetyEngineCard, evaluateSafety, type BridgeRow } from "@/components/SafetyEngine";
 import { setTradingEnabled } from "@/lib/risk.functions";
 import { MIN_SPREAD_THRESHOLD_USD, getNewsRestriction } from "@/lib/protection";
 import { PageHeader } from "@/components/PageHeader";
@@ -73,6 +75,13 @@ function DashboardPage() {
     queryFn: () => getDashboardOverview(),
   });
 
+  const bridgeQuery = useQuery({
+    queryKey: ["bridge-status"],
+    queryFn: () => getBridgeStatus(),
+    refetchInterval: 60_000,
+  });
+  const primaryBridge = ((bridgeQuery.data ?? []) as unknown as BridgeRow[])[0];
+
   const toggleTrading = useMutation({
     mutationFn: (enabled: boolean) => setTradingEnabled({ data: { enabled } }),
     onSuccess: (res) => {
@@ -122,7 +131,14 @@ function DashboardPage() {
 
   const activeBots = data.activations.filter((a) => a.status === "active").length;
   const connectedAccounts = data.accounts.filter((a) => a.status === "connected").length;
-  const tradingAllowed = !news.restricted && data.tradingEnabled;
+  const safety = evaluateSafety({
+    bridge: primaryBridge,
+    newsRestricted: news.restricted,
+    tradingEnabled: data.tradingEnabled,
+  });
+  const tradingAllowed = safety.allowed;
+  const totalBalance = data.accounts.reduce((s2, a) => s2 + Number(a.balance ?? 0), 0);
+  const totalEquity = data.accounts.reduce((s2, a) => s2 + Number(a.equity ?? 0), 0);
 
   return (
     <div>
@@ -171,14 +187,29 @@ function DashboardPage() {
         <StatCard
           icon={ShieldCheck}
           label="Trading Permission"
-          value={tradingAllowed ? "Allowed" : "Blocked"}
-          hint={
-            news.restricted
-              ? "News-day restriction active"
-              : data.tradingEnabled
-                ? "Guardrails satisfied"
-                : "Bots disabled by you"
-          }
+          value={tradingAllowed ? "ALLOW" : "BLOCK"}
+          hint={safety.reasons[0] ?? "All guardrails satisfied"}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          icon={Wallet}
+          label="Balance"
+          value={formatMoney(totalBalance)}
+          hint="Across connected accounts"
+        />
+        <StatCard
+          icon={Wallet}
+          label="Equity"
+          value={formatMoney(totalEquity)}
+          hint={`Floating ${formatMoney(data.floatingProfit)}`}
+        />
+        <StatCard
+          icon={Activity}
+          label="Daily P&L"
+          value={formatMoney(data.todaysProfit)}
+          hint={`${data.todaysTrades} trade${data.todaysTrades === 1 ? "" : "s"} closed today`}
         />
       </div>
 
@@ -294,80 +325,16 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* News protection */}
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-display text-base">
-              <CalendarClock className="h-4 w-4 text-muted-foreground" />
-              News protection
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {news.restricted ? (
-              <div className="rounded-lg border border-loss/30 bg-loss/5 px-4 py-3">
-                <p className="text-sm font-medium text-loss">
-                  Trading blocked today — high-impact news
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {news.event} scheduled for {news.date}. Bots stay flat for the full
-                  session to avoid news volatility.
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-profit/30 bg-profit/5 px-4 py-3">
-                <p className="text-sm font-medium text-profit">
-                  Trading allowed today
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  No high-impact news restriction detected for {news.date}.
-                </p>
-              </div>
-            )}
-            <p className="mt-3 text-xs text-muted-foreground">
-              The live economic calendar is supplied by the execution service once
-              connected.
-            </p>
-          </CardContent>
-        </Card>
+      </div>
 
-        {/* Spread protection */}
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-display text-base">
-              <Gauge className="h-4 w-4 text-muted-foreground" />
-              Spread protection
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-4 py-3">
-              <p className="text-sm text-muted-foreground">Maximum allowed spread</p>
-              <p className="font-display text-lg font-semibold text-foreground">
-                {formatMoney(MIN_SPREAD_THRESHOLD_USD)}
-              </p>
-            </div>
-            {data.accounts.length === 0 ? (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Connect a trading account to monitor live spread per account.
-              </p>
-            ) : (
-              <ul className="mt-3 flex flex-col gap-2">
-                {data.accounts.map((account) => (
-                  <li
-                    key={account.id}
-                    className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-4 py-2.5"
-                  >
-                    <span className="truncate text-sm text-foreground">
-                      {account.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Spread unavailable — service offline
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+      <div className="mt-6">
+        <SafetyEngineCard
+          bridge={primaryBridge}
+          newsRestricted={news.restricted}
+          newsEvent={news.event}
+          newsDate={news.date}
+          tradingEnabled={data.tradingEnabled}
+        />
       </div>
 
       {/* Recent activity */}
