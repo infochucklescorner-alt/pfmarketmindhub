@@ -4,9 +4,7 @@ import {
   Activity,
   AlertTriangle,
   Bot,
-  CalendarClock,
   CreditCard,
-  Gauge,
   Plus,
   Server,
   ShieldCheck,
@@ -18,7 +16,7 @@ import { getDashboardOverview } from "@/lib/dashboard.functions";
 import { getBridgeStatus } from "@/lib/bridge.functions";
 import { SafetyEngineCard, evaluateSafety, type BridgeRow } from "@/components/SafetyEngine";
 import { setTradingEnabled } from "@/lib/risk.functions";
-import { MIN_SPREAD_THRESHOLD_USD, getNewsRestriction } from "@/lib/protection";
+import { getNewsRestriction } from "@/lib/protection";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
