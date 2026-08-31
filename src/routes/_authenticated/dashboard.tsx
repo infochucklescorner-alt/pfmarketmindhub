@@ -10,10 +10,13 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { getDashboardOverview } from "@/lib/dashboard.functions";
 import { getBridgeStatus } from "@/lib/bridge.functions";
+import type { BridgeQuote } from "@/lib/bridge-types";
+import { BridgeStatusCard } from "@/components/BridgeStatusCard";
 import { SafetyEngineCard, evaluateSafety, type BridgeRow } from "@/components/SafetyEngine";
 import { setTradingEnabled } from "@/lib/risk.functions";
 import { getNewsRestriction } from "@/lib/protection";
