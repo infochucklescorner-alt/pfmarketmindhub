@@ -237,6 +237,179 @@ export type Database = {
         }
         Relationships: []
       }
+      pf_nexus_access_periods: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          paid_profit_days: number
+          stage_days: number
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          paid_profit_days?: number
+          stage_days?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          paid_profit_days?: number
+          stage_days?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pf_nexus_invoices: {
+        Row: {
+          amount_due: number
+          checkout_url: string | null
+          created_at: string
+          currency: string
+          due_date: string
+          id: string
+          paid_at: string | null
+          platform_share: number
+          realized_net_profit: number
+          status: string
+          trading_date: string
+          updated_at: string
+          user_id: string
+          user_share: number
+        }
+        Insert: {
+          amount_due?: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          due_date: string
+          id?: string
+          paid_at?: string | null
+          platform_share?: number
+          realized_net_profit?: number
+          status?: string
+          trading_date: string
+          updated_at?: string
+          user_id: string
+          user_share?: number
+        }
+        Update: {
+          amount_due?: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          due_date?: string
+          id?: string
+          paid_at?: string | null
+          platform_share?: number
+          realized_net_profit?: number
+          status?: string
+          trading_date?: string
+          updated_at?: string
+          user_id?: string
+          user_share?: number
+        }
+        Relationships: []
+      }
+      pf_nexus_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          invoice_id: string | null
+          paid_at: string | null
+          provider: string | null
+          provider_reference: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          paid_at?: string | null
+          provider?: string | null
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          paid_at?: string | null
+          provider?: string | null
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pf_nexus_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "pf_nexus_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pf_nexus_profit_days: {
+        Row: {
+          created_at: string
+          id: string
+          is_profitable: boolean
+          platform_share: number
+          realized_net_profit: number
+          trading_date: string
+          updated_at: string
+          user_id: string
+          user_share: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_profitable?: boolean
+          platform_share?: number
+          realized_net_profit?: number
+          trading_date: string
+          updated_at?: string
+          user_id: string
+          user_share?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_profitable?: boolean
+          platform_share?: number
+          realized_net_profit?: number
+          trading_date?: string
+          updated_at?: string
+          user_id?: string
+          user_share?: number
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           created_at: string
