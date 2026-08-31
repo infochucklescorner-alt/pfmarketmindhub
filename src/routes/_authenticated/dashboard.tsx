@@ -10,10 +10,13 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { getDashboardOverview } from "@/lib/dashboard.functions";
 import { getBridgeStatus } from "@/lib/bridge.functions";
+import type { BridgeQuote } from "@/lib/bridge-types";
+import { BridgeStatusCard } from "@/components/BridgeStatusCard";
 import { SafetyEngineCard, evaluateSafety, type BridgeRow } from "@/components/SafetyEngine";
 import { setTradingEnabled } from "@/lib/risk.functions";
 import { getNewsRestriction } from "@/lib/protection";
@@ -73,12 +76,26 @@ function DashboardPage() {
     queryFn: () => getDashboardOverview(),
   });
 
+  const [liveQuote, setLiveQuote] = useState<BridgeQuote | null>(null);
+
   const bridgeQuery = useQuery({
     queryKey: ["bridge-status"],
     queryFn: () => getBridgeStatus(),
     refetchInterval: 60_000,
   });
-  const primaryBridge = ((bridgeQuery.data ?? []) as unknown as BridgeRow[])[0];
+  const dbBridge = ((bridgeQuery.data ?? []) as unknown as BridgeRow[])[0];
+  // Live quote (when fresh) takes precedence over the last persisted telemetry.
+  const primaryBridge: BridgeRow | undefined =
+    dbBridge && liveQuote && !liveQuote.stale
+      ? {
+          ...dbBridge,
+          symbol: liveQuote.symbol,
+          bid: liveQuote.bid,
+          ask: liveQuote.ask,
+          spread: liveQuote.spreadPrice,
+          last_quote_at: liveQuote.quotedAt,
+        }
+      : dbBridge;
 
   const toggleTrading = useMutation({
     mutationFn: (enabled: boolean) => setTradingEnabled({ data: { enabled } }),
@@ -323,6 +340,13 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
+      </div>
+
+      <div className="mt-6">
+        <BridgeStatusCard
+          lastHeartbeatAt={dbBridge?.last_heartbeat_at ?? null}
+          onQuote={setLiveQuote}
+        />
       </div>
 
       <div className="mt-6">
