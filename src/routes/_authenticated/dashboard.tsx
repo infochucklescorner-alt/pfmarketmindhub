@@ -343,6 +343,13 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6">
+        <BridgeStatusCard
+          lastHeartbeatAt={dbBridge?.last_heartbeat_at ?? null}
+          onQuote={setLiveQuote}
+        />
+      </div>
+
+      <div className="mt-6">
         <SafetyEngineCard
           bridge={primaryBridge}
           newsRestricted={news.restricted}
