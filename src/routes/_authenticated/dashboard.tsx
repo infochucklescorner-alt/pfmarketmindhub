@@ -73,12 +73,26 @@ function DashboardPage() {
     queryFn: () => getDashboardOverview(),
   });
 
+  const [liveQuote, setLiveQuote] = useState<BridgeQuote | null>(null);
+
   const bridgeQuery = useQuery({
     queryKey: ["bridge-status"],
     queryFn: () => getBridgeStatus(),
     refetchInterval: 60_000,
   });
-  const primaryBridge = ((bridgeQuery.data ?? []) as unknown as BridgeRow[])[0];
+  const dbBridge = ((bridgeQuery.data ?? []) as unknown as BridgeRow[])[0];
+  // Live quote (when fresh) takes precedence over the last persisted telemetry.
+  const primaryBridge: BridgeRow | undefined =
+    dbBridge && liveQuote && !liveQuote.stale
+      ? {
+          ...dbBridge,
+          symbol: liveQuote.symbol,
+          bid: liveQuote.bid,
+          ask: liveQuote.ask,
+          spread: liveQuote.spreadPrice,
+          last_quote_at: liveQuote.quotedAt,
+        }
+      : dbBridge;
 
   const toggleTrading = useMutation({
     mutationFn: (enabled: boolean) => setTradingEnabled({ data: { enabled } }),
