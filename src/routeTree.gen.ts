@@ -18,6 +18,7 @@ import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedBotsRouteImport } from './routes/_authenticated/bots'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
+import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
 import { Route as AuthenticatedPositionsRouteImport } from './routes/_authenticated/positions'
 import { Route as AuthenticatedRiskRouteImport } from './routes/_authenticated/risk'
@@ -68,6 +69,11 @@ const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPerformanceRoute =
   AuthenticatedPerformanceRouteImport.update({
     id: '/performance',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/bots': typeof AuthenticatedBotsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
+  '/invoices': typeof AuthenticatedInvoicesRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/positions': typeof AuthenticatedPositionsRoute
   '/risk': typeof AuthenticatedRiskRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/bots': typeof AuthenticatedBotsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
+  '/invoices': typeof AuthenticatedInvoicesRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/positions': typeof AuthenticatedPositionsRoute
   '/risk': typeof AuthenticatedRiskRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/_authenticated/bots': typeof AuthenticatedBotsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
+  '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
   '/_authenticated/positions': typeof AuthenticatedPositionsRoute
   '/_authenticated/risk': typeof AuthenticatedRiskRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/bots'
     | '/dashboard'
     | '/history'
+    | '/invoices'
     | '/performance'
     | '/positions'
     | '/risk'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/bots'
     | '/dashboard'
     | '/history'
+    | '/invoices'
     | '/performance'
     | '/positions'
     | '/risk'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bots'
     | '/_authenticated/dashboard'
     | '/_authenticated/history'
+    | '/_authenticated/invoices'
     | '/_authenticated/performance'
     | '/_authenticated/positions'
     | '/_authenticated/risk'
@@ -264,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/invoices': {
+      id: '/_authenticated/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/performance': {
       id: '/_authenticated/performance'
       path: '/performance'
@@ -309,6 +328,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBotsRoute: typeof AuthenticatedBotsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
+  AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
   AuthenticatedPositionsRoute: typeof AuthenticatedPositionsRoute
   AuthenticatedRiskRoute: typeof AuthenticatedRiskRoute
@@ -322,6 +342,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBotsRoute: AuthenticatedBotsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
+  AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
   AuthenticatedPositionsRoute: AuthenticatedPositionsRoute,
   AuthenticatedRiskRoute: AuthenticatedRiskRoute,

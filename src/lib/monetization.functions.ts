@@ -170,3 +170,56 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
 
     return { configured: true, checkoutUrl: url, alreadyPaid: false };
   });
+
+/** Invoices belonging to the signed-in user (RLS scopes rows to the caller). */
+export const getMyInvoices = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("pf_nexus_invoices")
+      .select(
+        "id, invoice_number, trading_date, amount_due, currency, status, due_date, checkout_url, paid_at",
+      )
+      .eq("user_id", context.userId)
+      .order("trading_date", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+
+    return {
+      invoices: data ?? [],
+      isAdmin: (roles ?? []).some((r) => r.role === "admin"),
+    };
+  });
+
+/** Admin-only: billing records across users, without exposing personal data. */
+export const getAllInvoices = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleError) throw new Error(roleError.message);
+    if (!isAdmin) throw new Response("Forbidden", { status: 403 });
+
+    const { data, error } = await context.supabase
+      .from("pf_nexus_invoices")
+      .select(
+        "id, invoice_number, user_id, trading_date, amount_due, currency, status, due_date, paid_at",
+      )
+      .order("trading_date", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+
+    // Only a short opaque reference is surfaced — never other users' emails.
+    return (data ?? []).map((row) => ({
+      ...row,
+      user_ref: row.user_id.slice(0, 8),
+      user_id: undefined as unknown as string,
+    }));
+  });
