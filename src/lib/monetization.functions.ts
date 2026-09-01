@@ -88,7 +88,8 @@ export const getMonetizationOverview = createServerFn({ method: "GET" })
       todaysRealizedNetProfit: Number(todaysProfitDay?.realized_net_profit ?? 0),
       todaysUserShare: Number(todaysProfitDay?.user_share ?? 0),
       todaysPlatformShare: Number(todaysProfitDay?.platform_share ?? 0),
-      paymentProviderConnected: false,
+      paymentProviderConnected: Boolean(process.env["PAYSTACK_SECRET_KEY"]),
+      emailNotificationsConfigured: Boolean(process.env["BREVO_API_KEY"]),
     };
   });
 
