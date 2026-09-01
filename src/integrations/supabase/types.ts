@@ -281,6 +281,7 @@ export type Database = {
           currency: string
           due_date: string
           id: string
+          invoice_number: string | null
           paid_at: string | null
           platform_share: number
           realized_net_profit: number
@@ -297,6 +298,7 @@ export type Database = {
           currency?: string
           due_date: string
           id?: string
+          invoice_number?: string | null
           paid_at?: string | null
           platform_share?: number
           realized_net_profit?: number
@@ -313,6 +315,7 @@ export type Database = {
           currency?: string
           due_date?: string
           id?: string
+          invoice_number?: string | null
           paid_at?: string | null
           platform_share?: number
           realized_net_profit?: number
