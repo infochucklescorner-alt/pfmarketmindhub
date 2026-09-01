@@ -10,6 +10,7 @@ import {
   LineChart,
   LogOut,
   Menu,
+  Receipt,
   Server,
   Settings,
   ShieldCheck,
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { to: "/history", label: "Trade History", icon: History },
   { to: "/performance", label: "Performance", icon: LineChart },
   { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/invoices", label: "Payments & Invoices", icon: Receipt },
   { to: "/admin", label: "Admin", icon: Gauge },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
