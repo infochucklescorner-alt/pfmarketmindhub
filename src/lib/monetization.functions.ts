@@ -109,3 +109,63 @@ export const getInvoiceCheckoutUrl = createServerFn({ method: "POST" })
     }
     return { checkoutUrl: invoice.checkout_url, providerConnected: true };
   });
+
+/**
+ * Creates (or reuses) a Paystack checkout session for a daily profit-share invoice.
+ * All provider secrets stay server-side; the client only ever receives a checkout URL.
+ */
+export const createPaystackCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ invoiceId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: invoice, error } = await context.supabase
+      .from("pf_nexus_invoices")
+      .select("id, amount_due, currency, status, checkout_url")
+      .eq("id", data.invoiceId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!invoice) throw new Error("Invoice not found.");
+    if (invoice.status === "paid") {
+      return { configured: true, checkoutUrl: null as string | null, alreadyPaid: true };
+    }
+    if (invoice.checkout_url) {
+      return { configured: true, checkoutUrl: invoice.checkout_url, alreadyPaid: false };
+    }
+
+    const secret = process.env["PAYSTACK_SECRET_KEY"];
+    if (!secret) {
+      return { configured: false, checkoutUrl: null as string | null, alreadyPaid: false };
+    }
+
+    const email = context.claims?.email as string | undefined;
+    const res = await fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email ?? `${context.userId}@pfnexus.invalid`,
+        amount: Math.round(Number(invoice.amount_due) * 100),
+        currency: invoice.currency || "USD",
+        metadata: { invoice_id: invoice.id, user_id: context.userId },
+      }),
+    });
+    if (!res.ok) {
+      throw new Error("Checkout could not be created. Please try again shortly.");
+    }
+    const payload = (await res.json()) as {
+      data?: { authorization_url?: string };
+    };
+    const url = payload.data?.authorization_url ?? null;
+    if (!url) throw new Error("Checkout could not be created. Please try again shortly.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("pf_nexus_invoices")
+      .update({ checkout_url: url })
+      .eq("id", invoice.id)
+      .eq("user_id", context.userId);
+
+    return { configured: true, checkoutUrl: url, alreadyPaid: false };
+  });
