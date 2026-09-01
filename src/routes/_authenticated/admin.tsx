@@ -64,6 +64,8 @@ function AdminPage() {
     );
   }
 
+  const recentUsers = data.recentUsers ?? [];
+
   return (
     <div>
       <PageHeader
@@ -91,14 +93,14 @@ function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.recentUsers.length === 0 ? (
+              {recentUsers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="text-center text-muted-foreground">
                     No users yet.
                   </TableCell>
                 </TableRow>
               ) : (
-                data.recentUsers.map((user) => (
+                recentUsers.map((user) => (
                   <TableRow key={user.email ?? user.created_at}>
                     <TableCell className="font-medium">{user.email ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">
