@@ -4,6 +4,8 @@ import { Loader2, Settings as SettingsIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/PageHeader";
+import { SystemDiagnosticsCard } from "@/components/SystemDiagnosticsCard";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -56,6 +58,9 @@ function SettingsPage() {
         title="Settings"
         description="Account preferences and platform protection defaults."
       />
+
+      <SystemDiagnosticsCard />
+
 
       <Card className="border-border/60">
         <CardHeader>

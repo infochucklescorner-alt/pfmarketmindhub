@@ -88,8 +88,10 @@ export const getMonetizationOverview = createServerFn({ method: "GET" })
       todaysRealizedNetProfit: Number(todaysProfitDay?.realized_net_profit ?? 0),
       todaysUserShare: Number(todaysProfitDay?.user_share ?? 0),
       todaysPlatformShare: Number(todaysProfitDay?.platform_share ?? 0),
-      paymentProviderConnected: Boolean(process.env["PAYSTACK_SECRET_KEY"]),
+      paymentProviderConnected: (await import("@/lib/paystack.server")).getPaystackConfig()
+        .configured,
       emailNotificationsConfigured: Boolean(process.env["BREVO_API_KEY"]),
+
     };
   });
 
@@ -119,6 +121,10 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ invoiceId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
+    const { getPaystackConfig } = await import("@/lib/paystack.server");
+    const paystack = getPaystackConfig();
+    const base = { mode: paystack.mode, error: null as string | null };
+
     const { data: invoice, error } = await context.supabase
       .from("pf_nexus_invoices")
       .select("id, amount_due, currency, status, checkout_url")
@@ -127,22 +133,33 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!invoice) throw new Error("Invoice not found.");
     if (invoice.status === "paid") {
-      return { configured: true, checkoutUrl: null as string | null, alreadyPaid: true };
+      return { ...base, configured: true, checkoutUrl: null as string | null, alreadyPaid: true };
     }
     if (invoice.checkout_url) {
-      return { configured: true, checkoutUrl: invoice.checkout_url, alreadyPaid: false };
+      return {
+        ...base,
+        configured: true,
+        checkoutUrl: invoice.checkout_url,
+        alreadyPaid: false,
+      };
     }
 
-    const secret = process.env["PAYSTACK_SECRET_KEY"];
-    if (!secret) {
-      return { configured: false, checkoutUrl: null as string | null, alreadyPaid: false };
+
+    if (!paystack.configured || !paystack.secretKey) {
+      return {
+        configured: false,
+        checkoutUrl: null as string | null,
+        alreadyPaid: false,
+        mode: paystack.mode,
+        error: paystack.error,
+      };
     }
 
     const email = context.claims?.email as string | undefined;
     const res = await fetch("https://api.paystack.co/transaction/initialize", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${secret}`,
+        Authorization: `Bearer ${paystack.secretKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -152,6 +169,7 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
         metadata: { invoice_id: invoice.id, user_id: context.userId },
       }),
     });
+
     if (!res.ok) {
       throw new Error("Checkout could not be created. Please try again shortly.");
     }
