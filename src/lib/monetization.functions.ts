@@ -121,6 +121,10 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ invoiceId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
+    const { getPaystackConfig } = await import("@/lib/paystack.server");
+    const paystack = getPaystackConfig();
+    const base = { mode: paystack.mode, error: null as string | null };
+
     const { data: invoice, error } = await context.supabase
       .from("pf_nexus_invoices")
       .select("id, amount_due, currency, status, checkout_url")
@@ -129,11 +133,17 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!invoice) throw new Error("Invoice not found.");
     if (invoice.status === "paid") {
-      return { configured: true, checkoutUrl: null as string | null, alreadyPaid: true };
+      return { ...base, configured: true, checkoutUrl: null as string | null, alreadyPaid: true };
     }
     if (invoice.checkout_url) {
-      return { configured: true, checkoutUrl: invoice.checkout_url, alreadyPaid: false };
+      return {
+        ...base,
+        configured: true,
+        checkoutUrl: invoice.checkout_url,
+        alreadyPaid: false,
+      };
     }
+
 
     const { getPaystackConfig } = await import("@/lib/paystack.server");
     const paystack = getPaystackConfig();
