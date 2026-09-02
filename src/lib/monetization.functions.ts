@@ -145,8 +145,6 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
     }
 
 
-    const { getPaystackConfig } = await import("@/lib/paystack.server");
-    const paystack = getPaystackConfig();
     if (!paystack.configured || !paystack.secretKey) {
       return {
         configured: false,
