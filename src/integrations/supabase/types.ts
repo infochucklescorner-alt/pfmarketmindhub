@@ -61,6 +61,7 @@ export type Database = {
       }
       bots: {
         Row: {
+          config_schema: Json
           created_at: string
           description: string
           id: string
@@ -70,9 +71,11 @@ export type Database = {
           name: string
           risk_level: string
           slug: string
+          sort_order: number
           strategy: string
         }
         Insert: {
+          config_schema?: Json
           created_at?: string
           description: string
           id?: string
@@ -82,9 +85,11 @@ export type Database = {
           name: string
           risk_level?: string
           slug: string
+          sort_order?: number
           strategy: string
         }
         Update: {
+          config_schema?: Json
           created_at?: string
           description?: string
           id?: string
@@ -94,6 +99,7 @@ export type Database = {
           name?: string
           risk_level?: string
           slug?: string
+          sort_order?: number
           strategy?: string
         }
         Relationships: []
@@ -501,25 +507,49 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms_at: string | null
+          country: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          phone_number: string | null
+          postal_code: string | null
+          profile_completed_at: string | null
           updated_at: string
+          whatsapp_consent: boolean
+          whatsapp_number: string | null
+          whatsapp_verification_status: string
         }
         Insert: {
+          accepted_terms_at?: string | null
+          country?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          phone_number?: string | null
+          postal_code?: string | null
+          profile_completed_at?: string | null
           updated_at?: string
+          whatsapp_consent?: boolean
+          whatsapp_number?: string | null
+          whatsapp_verification_status?: string
         }
         Update: {
+          accepted_terms_at?: string | null
+          country?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          phone_number?: string | null
+          postal_code?: string | null
+          profile_completed_at?: string | null
           updated_at?: string
+          whatsapp_consent?: boolean
+          whatsapp_number?: string | null
+          whatsapp_verification_status?: string
         }
         Relationships: []
       }
