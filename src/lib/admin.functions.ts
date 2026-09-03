@@ -215,12 +215,12 @@ export const runFullSystemTest = createServerFn({ method: "POST" })
     let bridgeStatus: SystemCheck["status"] = "warning";
     if (bridgeConfigured) {
       try {
-        const { bridgeHealth } = await import("@/lib/bridge-api.server");
-        const health = await bridgeHealth();
-        bridgeStatus = health.reachable ? "ok" : "error";
-        bridgeDetail = health.reachable
+        const { bridgeGet } = await import("@/lib/bridge-api.server");
+        const health = await bridgeGet("/health");
+        bridgeStatus = health.ok ? "ok" : "error";
+        bridgeDetail = health.ok
           ? `Reachable (${health.latencyMs ?? "?"} ms).`
-          : "Bridge unreachable.";
+          : (health.error ?? "Bridge unreachable.");
       } catch {
         bridgeStatus = "error";
         bridgeDetail = "Bridge health probe failed.";
