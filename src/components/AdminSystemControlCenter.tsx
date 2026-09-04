@@ -1,9 +1,24 @@
-import { useMutation } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Loader2, Mail, PlayCircle, XCircle } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CreditCard,
+  FlaskConical,
+  Loader2,
+  Mail,
+  PlayCircle,
+  XCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { runFullSystemTest, sendTestEmail, type SystemCheck } from "@/lib/admin.functions";
+import {
+  getIntegrationTestStatus,
+  runFullSystemTest,
+  sendTestEmail,
+  startPaystackTestPayment,
+  type SystemCheck,
+} from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +29,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
 
 const STATUS_STYLES: Record<SystemCheck["status"], string> = {
   ok: "border-profit/40 bg-profit/10 text-profit",
