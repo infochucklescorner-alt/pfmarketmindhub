@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CalendarClock,
   CircleDollarSign,
-  Loader2,
   Mail,
   Receipt,
   ShieldCheck,
@@ -12,10 +11,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  createPaystackCheckout,
-  getMonetizationOverview,
-} from "@/lib/monetization.functions";
+import { getMonetizationOverview } from "@/lib/monetization.functions";
+import { PayInvoiceButton } from "@/components/PayInvoiceButton";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -69,22 +66,6 @@ function BillingPage() {
   const overviewQuery = useQuery({
     queryKey: ["monetization-overview"],
     queryFn: () => getMonetizationOverview(),
-  });
-
-  const checkoutMutation = useMutation({
-    mutationFn: (invoiceId: string) => createPaystackCheckout({ data: { invoiceId } }),
-    onSuccess: (result) => {
-      if (result.alreadyPaid) {
-        toast.success("This invoice is already paid.");
-        return;
-      }
-      if (!result.configured || !result.checkoutUrl) {
-        toast.error("Payment provider not connected yet. Please try again later.");
-        return;
-      }
-      window.location.href = result.checkoutUrl;
-    },
-    onError: (error) => toast.error(error.message),
   });
 
   const data = overviewQuery.data;
@@ -230,20 +211,8 @@ function BillingPage() {
                     <span className="text-sm text-muted-foreground">
                       Paid {formatDate(invoice.paid_at)}
                     </span>
-                  ) : data.paymentProviderConnected || invoice.checkout_url ? (
-                    <Button
-                      onClick={() => checkoutMutation.mutate(invoice.id)}
-                      disabled={checkoutMutation.isPending}
-                    >
-                      {checkoutMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : null}
-                      Pay now
-                    </Button>
                   ) : (
-                    <span className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground">
-                      Payment provider not connected
-                    </span>
+                    <PayInvoiceButton invoiceId={invoice.id} />
                   )}
                 </div>
               </div>

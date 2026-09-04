@@ -1,13 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, Receipt } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, Receipt } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  createPaystackCheckout,
-  getAllInvoices,
-  getMyInvoices,
-} from "@/lib/monetization.functions";
+import { getAllInvoices, getMyInvoices } from "@/lib/monetization.functions";
+import { PayInvoiceButton } from "@/components/PayInvoiceButton";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -72,22 +69,6 @@ function InvoicesPage() {
     queryFn: () => getAllInvoices(),
     enabled: isAdmin,
     retry: false,
-  });
-
-  const checkout = useMutation({
-    mutationFn: (invoiceId: string) => createPaystackCheckout({ data: { invoiceId } }),
-    onSuccess: (result) => {
-      if (result.alreadyPaid) {
-        toast.success("This invoice is already paid.");
-        return;
-      }
-      if (!result.configured || !result.checkoutUrl) {
-        toast.error("Payment provider not connected yet.");
-        return;
-      }
-      window.location.href = result.checkoutUrl;
-    },
-    onError: (error: Error) => toast.error(error.message),
   });
 
   if (invoicesQuery.isLoading) {
@@ -176,16 +157,7 @@ function InvoicesPage() {
                             Paid {formatDate(invoice.paid_at)}
                           </span>
                         ) : (
-                          <Button
-                            size="sm"
-                            disabled={checkout.isPending}
-                            onClick={() => checkout.mutate(invoice.id)}
-                          >
-                            {checkout.isPending && (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            )}
-                            Pay now
-                          </Button>
+                          <PayInvoiceButton invoiceId={invoice.id} size="sm" className="justify-end" />
                         )}
                       </TableCell>
                     </TableRow>
