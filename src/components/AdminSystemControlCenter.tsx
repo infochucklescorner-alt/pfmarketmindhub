@@ -46,7 +46,6 @@ const STATUS_ICON = {
 export function AdminSystemControlCenter() {
   const [checks, setChecks] = useState<SystemCheck[] | null>(null);
   const [ranAt, setRanAt] = useState<string | null>(null);
-  const [lastEmail, setLastEmail] = useState<string | null>(null);
 
   const testMutation = useMutation({
     mutationFn: () => runFullSystemTest(),
@@ -54,20 +53,6 @@ export function AdminSystemControlCenter() {
       setChecks(result.checks);
       setRanAt(result.ranAt);
       toast.success("System test complete. No trades or payments were made.");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-
-  const emailMutation = useMutation({
-    mutationFn: () => sendTestEmail({ data: {} }),
-    onSuccess: (result) => {
-      if (result.ok) {
-        setLastEmail(`Sent to ${result.recipient} at ${new Date(result.sentAt!).toLocaleTimeString()}`);
-        toast.success("Test email sent.");
-      } else {
-        setLastEmail(result.error);
-        toast.error(result.error ?? "Test email failed.");
-      }
     },
     onError: (error) => toast.error(error.message),
   });
@@ -82,40 +67,25 @@ export function AdminSystemControlCenter() {
               Configuration and health only. Trade execution stays disabled.
             </CardDescription>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => emailMutation.mutate()}
-              disabled={emailMutation.isPending}
-            >
-              {emailMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Mail className="h-4 w-4" />
-              )}
-              Send test email (temporary)
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => testMutation.mutate()}
-              disabled={testMutation.isPending}
-            >
-              {testMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <PlayCircle className="h-4 w-4" />
-              )}
-              Run full system test
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            onClick={() => testMutation.mutate()}
+            disabled={testMutation.isPending}
+          >
+            {testMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <PlayCircle className="h-4 w-4" />
+            )}
+            Run full system test
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
         <p className="mb-4 text-xs text-muted-foreground">
-          Last email: <span className="text-foreground">{lastEmail ?? "No test email sent in this session."}</span>
-          {ranAt ? ` · Last test: ${new Date(ranAt).toLocaleString()}` : null}
+          {ranAt ? `Last test: ${new Date(ranAt).toLocaleString()}` : "No test run in this session."}
         </p>
+
 
         {checks === null ? (
           <p className="text-sm text-muted-foreground">
