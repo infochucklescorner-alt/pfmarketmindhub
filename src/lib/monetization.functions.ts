@@ -189,6 +189,104 @@ export const createPaystackCheckout = createServerFn({ method: "POST" })
     return { configured: true, checkoutUrl: url, alreadyPaid: false };
   });
 
+/**
+ * Creates a FanBasis (Commas) checkout session for a daily profit-share invoice.
+ * The FanBasis API key never leaves the server; the client only receives a
+ * payment link. Invoices are NEVER marked paid from this call or from the
+ * client redirect — reconciliation happens server-side from provider events.
+ */
+export const createFanbasisCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ invoiceId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { getFanbasisConfig, FANBASIS_CHECKOUT_ENDPOINT } = await import(
+      "@/lib/fanbasis.server"
+    );
+    const fanbasis = getFanbasisConfig();
+
+    const { data: invoice, error } = await context.supabase
+      .from("pf_nexus_invoices")
+      .select("id, invoice_number, amount_due, currency, status, trading_date")
+      .eq("id", data.invoiceId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!invoice) throw new Error("Invoice not found.");
+    if (invoice.status === "paid") {
+      return {
+        configured: true,
+        paymentLink: null as string | null,
+        alreadyPaid: true,
+        error: null as string | null,
+      };
+    }
+    if (!fanbasis.configured || !fanbasis.apiKey) {
+      return {
+        configured: false,
+        paymentLink: null as string | null,
+        alreadyPaid: false,
+        error: fanbasis.error,
+      };
+    }
+
+    const email = (context.claims?.email as string | undefined) ?? undefined;
+    const res = await fetch(FANBASIS_CHECKOUT_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${fanbasis.apiKey}`,
+        "x-api-key": fanbasis.apiKey,
+      },
+      body: JSON.stringify({
+        amount: Number(invoice.amount_due),
+        currency: invoice.currency || "USD",
+        description: `PF NEXUS profit share — ${invoice.trading_date}`,
+        customer_email: email,
+        // Metadata lets a later server-side reconciliation job match the payment
+        // back to this invoice and user without trusting the client.
+        metadata: {
+          invoice_id: invoice.id,
+          invoice_number: invoice.invoice_number,
+          user_id: context.userId,
+          platform: "pf-nexus",
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      return {
+        configured: true,
+        paymentLink: null as string | null,
+        alreadyPaid: false,
+        error: "FanBasis checkout could not be created. Please try again shortly.",
+      };
+    }
+
+    const payload = (await res.json()) as Record<string, unknown>;
+    const nested = (payload["data"] ?? {}) as Record<string, unknown>;
+    const link =
+      (payload["payment_link"] as string | undefined) ??
+      (nested["payment_link"] as string | undefined) ??
+      null;
+
+    if (!link) {
+      return {
+        configured: true,
+        paymentLink: null as string | null,
+        alreadyPaid: false,
+        error: "FanBasis did not return a payment link.",
+      };
+    }
+
+    return {
+      configured: true,
+      paymentLink: link,
+      alreadyPaid: false,
+      error: null as string | null,
+    };
+  });
+
+
 /** Invoices belonging to the signed-in user (RLS scopes rows to the caller). */
 export const getMyInvoices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
