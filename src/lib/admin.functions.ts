@@ -254,3 +254,86 @@ export const runFullSystemTest = createServerFn({ method: "POST" })
 
     return { ranAt: new Date().toISOString(), checks };
   });
+
+/**
+ * TEMPORARY admin-only Paystack test payment.
+ * Sandbox mode ONLY: initializes a ₦100 test transaction and returns the
+ * hosted checkout URL. Refuses to run against a live key. No invoice is
+ * created or modified. Delete this together with the admin test area.
+ */
+export const startPaystackTestPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const adminEmail = await assertAdmin(context as unknown as AuthContext);
+    const { getPaystackConfig } = await import("@/lib/paystack.server");
+    const paystack = getPaystackConfig();
+
+    const base = { mode: paystack.mode, keyPrefix: paystack.keyPrefix };
+
+    if (!paystack.configured || !paystack.secretKey) {
+      return {
+        ...base,
+        ok: false as const,
+        checkoutUrl: null as string | null,
+        error: paystack.error ?? "PAYSTACK_SECRET_KEY is not configured.",
+      };
+    }
+    if (paystack.mode !== "sandbox") {
+      return {
+        ...base,
+        ok: false as const,
+        checkoutUrl: null as string | null,
+        error: "Test payments are blocked while PF NEXUS is in live mode.",
+      };
+    }
+
+    const res = await fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${paystack.secretKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: adminEmail || ADMIN_EMAIL,
+        amount: 10000, // ₦100.00 in kobo
+        currency: "NGN",
+        metadata: { pf_nexus_test: true, user_id: context.userId },
+      }),
+    });
+
+    if (!res.ok) {
+      return {
+        ...base,
+        ok: false as const,
+        checkoutUrl: null as string | null,
+        error: `Paystack rejected the request (HTTP ${res.status}).`,
+      };
+    }
+    const payload = (await res.json()) as { data?: { authorization_url?: string } };
+    const url = payload.data?.authorization_url ?? null;
+    if (!url) {
+      return {
+        ...base,
+        ok: false as const,
+        checkoutUrl: null as string | null,
+        error: "Paystack did not return a checkout URL.",
+      };
+    }
+    return { ...base, ok: true as const, checkoutUrl: url, error: null as string | null };
+  });
+
+/** Client-safe configuration status for the temporary integration test area. */
+export const getIntegrationTestStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context as unknown as AuthContext);
+    const { getPaystackStatus } = await import("@/lib/paystack.server");
+    const paystack = getPaystackStatus();
+    return {
+      paystack,
+      brevo: {
+        configured: Boolean(process.env["BREVO_API_KEY"]),
+        error: process.env["BREVO_API_KEY"] ? null : "BREVO_API_KEY is not configured.",
+      },
+    };
+  });
