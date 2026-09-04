@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, Receipt } from "lucide-react";
+import { AlertTriangle, Receipt } from "lucide-react";
 import { toast } from "sonner";
 
 import { getAllInvoices, getMyInvoices } from "@/lib/monetization.functions";

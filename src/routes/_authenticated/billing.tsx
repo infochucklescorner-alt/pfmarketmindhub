@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   CalendarClock,
   CircleDollarSign,
-  Loader2,
   Mail,
   Receipt,
   ShieldCheck,
