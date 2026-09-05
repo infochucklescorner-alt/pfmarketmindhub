@@ -3,6 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot, CreditCard, Server, ShieldAlert, Users } from "lucide-react";
 
 import { getAdminOverview } from "@/lib/admin.functions";
+import {
+  AdminSystemControlCenter,
+  TemporaryIntegrationTests,
+} from "@/components/AdminSystemControlCenter";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { EmptyState } from "@/components/EmptyState";
