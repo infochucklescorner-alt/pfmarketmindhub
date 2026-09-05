@@ -117,6 +117,9 @@ function AdminPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <AdminSystemControlCenter />
+      <TemporaryIntegrationTests />
     </div>
   );
 }
